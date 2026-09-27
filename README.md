@@ -30,6 +30,12 @@ uv run scripts/ejercicio_03_traduccion.py
 
 # Ejercicio 4: Splicing alternativo
 uv run scripts/ejercicio_04_splicing.py
+
+# Ejercicio 5: Introducción a las proteínas y estructura PDB
+uv run scripts/ejercicio_05_proteinas.py
+
+# Ejercicio 6: Actividad integradora del Dogma Central (Pipeline)
+uv run scripts/ejercicio_06_pipeline_dogma.py
 ```
 
 ---
@@ -39,6 +45,8 @@ uv run scripts/ejercicio_04_splicing.py
 2. [Ejercicio 2: Transcripción del ADN a ARN](#ejercicio-2-transcripción-del-adn-a-arn)
 3. [Ejercicio 3: Traducción del ARNm a proteína](#ejercicio-3-traducción-del-arnm-a-proteína)
 4. [Ejercicio 4: Splicing alternativo](#ejercicio-4-splicing-alternativo)
+5. [Ejercicio 5: Introducción a las proteínas](#ejercicio-5-introducción-a-las-proteínas)
+6. [Ejercicio 6: Actividad integradora: del ADN a la proteína](#ejercicio-6-actividad-integradora-del-adn-a-la-proteína)
 
 ---
 
@@ -557,5 +565,270 @@ La conmutación o intercambio de splicing alternativo de la isoforma **FGFR2-III
 - La expresión anómala de FGFR2-IIIc en células tumorales permite que respondan autocrinamente al ligando FGF2, desencadenando la pérdida de polaridad apical-basal, la disolución de uniones intercelulares de cadherina y una agresiva capacidad de invasión celular y metástasis a distancia.
 
 El script `scripts/ejercicio_04_splicing.py` reproduce computacionalmente tanto el modelado teórico de las combinaciones de exones como el análisis secuencial comparativo de los dos transcritos de Ensembl.
+
+---
+
+## Ejercicio 5: Introducción a las proteínas
+
+### 1. Objetivo
+Analizar la relación mecanicista y termodinámica entre la estructura primaria de un polipéptido, la polaridad química de la cadena (extremos N-terminal y C-terminal), las fuerzas biofísicas que dirigen el plegamiento conformacional tridimensional (efecto hidrofóbico, puentes de hidrógeno e interacciones de van der Waals) y el impacto desestabilizador de mutaciones puntuales internas, contrastándolo bioinformáticamente mediante el análisis estructural tridimensional en el **Protein Data Bank (PDB)** con la librería `Bio.PDB` de Biopython.
+
+---
+
+### 2. Planteamiento y Análisis del Péptido Problema
+
+Se suministra el siguiente oligopéptido lineal de 7 aminoácidos (heptapéptido):
+
+$$\mathbf{\text{Met – Ile – Ser – Gly – Val – Lys – His}} \quad (\text{Código estándar de 1 letra: } \mathbf{\text{MISGVKH}})$$
+
+#### Identificación rigurosa de los extremos N y C:
+Por convención universal de la bioquímica y de la biosíntesis ribosomal (que procede polarizadamente desde el extremo amino hacia el carboxilo):
+1. **Extremo N-terminal ($\text{Amino-terminal, H}_3\text{N}^+-$):**
+   - Corresponde al primer residuo de la cadena: **Metionina (Met / M)**.
+   - Presenta su grupo $\alpha$-amino ($\text{-NH}_3^+$) libre, no comprometido en ningún enlace peptídico covalente.
+2. **Extremo C-terminal ($\text{Carboxilo-terminal, -COO}^-$):**
+   - Corresponde al último residuo de la cadena: **Histidina (His / H)**.
+   - Presenta su grupo $\alpha$-carboxilo ($\text{-COO}^-$) libre, no comprometido en ningún enlace peptídico covalente.
+
+#### Notación química formal del enlace peptídico:
+El enlace peptídico es una unión amida planar con carácter parcial de doble enlace ($\sim 40\%$ de resonancia) originada por la condensación nucleofílica entre el grupo $\alpha$-carboxilo del residuo $i$ y el grupo $\alpha$-amino del residuo $i+1$, con eliminación de agua:
+
+$$\mathbf{\text{H}_3\text{N}^+\text{ – [Met] – CO–NH – [Ile] – CO–NH – [Ser] – CO–NH – [Gly] – CO–NH – [Val] – CO–NH – [Lys] – CO–NH – [His] – COO}^-}$$
+
+#### Propiedades fisicoquímicas de los aminoácidos del péptido:
+
+| Residuo | Código 3L / 1L | Naturaleza de la cadena lateral ($\text{R}$) | Carga neta a $\text{pH 7.4}$ | Rol estructural y conformacional |
+| :--- | :--- | :--- | :--- | :--- |
+| **Metionina** | $\text{Met / M}$ | Apolar alifático, tioéter ($-\text{CH}_2\text{-CH}_2\text{-S-CH}_3$) | $0$ | Residuo hidrofóbico iniciador; flexible y moldeable en empaquetamientos apolares. |
+| **Isoleucina** | $\text{Ile / I}$ | Apolar alifático ramificado en $\text{C}_\beta$ | $0$ | Altamente hidrofóbico; excelente estabilizador de núcleos internos y láminas $\beta$. |
+| **Serina** | $\text{Ser / S}$ | Polar no cargado, grupo hidroxilo ($-\text{CH}_2\text{-OH}$) | $0$ | Excelente aceptor/donador de puentes de H; sitio habitual de regulación por fosforilación. |
+| **Glicina** | $\text{Gly / G}$ | Apolar especial, hidrógeno ($-\text{H}$) | $0$ | Aquiral; carece de impedimento estérico $\text{C}_\beta$, confiriendo máxima flexibilidad conformacional a bucles y giros. |
+| **Valina** | $\text{Val / V}$ | Apolar alifático ramificado en $\text{C}_\beta$ | $0$ | Fuertemente hidrofóbico; propensión intrínseca a conformaciones en lámina $\beta$. |
+| **Lisina** | $\text{Lys / K}$ | Básico polar con grupo amino primario ($\text{-NH}_3^+$) | $+1$ | Altamente hidrofílico; suele proyectarse hacia el solvente o formar puentes salinos electrostáticos superficiales. |
+| **Histidina** | $\text{His / H}$ | Básico aromático con anillo imidazol | $\approx +0.1$ | $\text{p}K_a \approx 6.0\text{-}6.5$; actúa como sensor fisiológico de pH, dador/aceptor de protones y residuo catalítico central. |
+
+*Parámetros globales calculados con Biopython (`ProtParam`):* Masa molecular: $\mathbf{770.94\text{ Da}}$, Punto isoeléctrico teórico ($\text{pI}$): $\mathbf{8.52}$, Índice de hidropatía promedio ($\text{GRAVY}$): $\mathbf{+0.33}$ (ligeramente hidrofóbico en su conjunto).
+
+---
+
+### 3. Reflexión Biofísica: Secuencia, Plegamiento y Consecuencias de Mutaciones
+
+#### A. ¿Cómo influye el orden de los aminoácidos en la estructura final de la proteína?
+
+La relación entre secuencia lineal y conformación funcional viene gobernada por el **Principio de Anfinsen** (demostrado por Christian Anfinsen en 1972): *la estructura tridimensional nativa de una proteína en su estado termodinámicamente más estable (mínimo de energía libre de Gibbs, $\Delta G$) está enteramente codificada en su estructura primaria*.
+
+El orden específico dicta la estructura a través de mecanismos fisicoquímicos rigurosos:
+1. **Restricciones conformacionales del esqueleto (Gráfico de Ramachandran):**
+   Los ángulos de torsión $\phi$ ($\text{N-C}_\alpha$) y $\psi$ ($\text{C}_\alpha\text{-C}$) del enlace peptídico están confinados a regiones energéticamente permitidas según el volumen y naturaleza de las cadenas laterales contiguas.
+2. **Periodicidad de motivos de estructura secundaria:**
+   - Para conformar una **hélice $\alpha$ anfipática** (con una cara hidrofóbica enterrada y una cara polar expuesta), los residuos apolares deben alternar cada $3.6$ aminoácidos (posiciones $i, i+3, i+4$).
+   - Para conformar una **lámina $\beta$ anfipática**, los residuos polares y apolares deben alternarse estrictamente cada dos posiciones ($i, i+2$).
+   - La alteración del orden lineal destruye la periodicidad geométrica de estas redes de puentes de hidrógeno intramoleculares ($\text{C=O}\cdots\text{H-N}$).
+3. **El embudo de plegamiento (*Folding Funnel*):**
+   El plegamiento no ocurre por muestreo aleatorio (paradoja de Levinthal), sino por un colapso cooperativo guiado por contactos nativos específicos entre residuos distantes en la secuencia primaria que se aproximan en el espacio tridimensional.
+
+---
+
+#### B. ¿Qué ocurriría si hubiera una mutación que cambiara un aminoácido hidrofóbico por uno hidrofílico en el núcleo interno?
+
+El plegamiento de una proteína globular en medio acuoso está impulsado principalmente por el **efecto hidrofóbico**: la tendencia termodinámica del agua a maximizar su entropía ($\Delta S_{\text{solvente}} > 0$) expulsando las cadenas apolares hacia el centro de la macromolécula, donde se empaquetan densamente mediante fuerzas atractivas de van der Waals formando un **núcleo hidrofóbico anhidro (*hydrophobic core*)**.
+
+Si una mutación puntual sustituye un residuo hidrofóbico interno (como Leucina, Isoleucina o Valina) por uno hidrofílico cargado o muy polar (como Ácido Glutámico, Ácido Aspártico, Arginina o Lisina), se desencadenan consecuencias moleculares desastrosas:
+
+```text
+CONFORMACIÓN NATIVA ESTABLE                  MUTACIÓN HIDROFÓBICO -> HIDROFÍLICO EN EL NÚCLEO
+        (Interior Anhidro)                                      (Desestabilización)
+    ┌────────────────────────┐                             ┌────────────────────────┐
+    │      Leu       Val     │                             │      Leu       Val     │
+    │           Ile          │       ───────►              │         [ -COO- ]      │  ◄── Carga negativa
+    │      Phe       Leu     │   (Mutación Ile->Glu)       │      Phe       Leu     │      sin solvatar
+    └────────────────────────┘                             └────────────────────────┘
+    Núcleo apolar compacto                                 • Penalización de desolvatación (~15-20 kcal/mol)
+    ΔG_plegamiento = -10 kcal/mol (Estable)                • Pérdida neta de estabilidad: ΔΔG >> 0
+                                                           • Desplegamiento y agregación amiloide citotóxica
+```
+
+1. **Penalización termodinámica masiva de desolvatación:**
+   Un grupo cargado ($\text{-COO}^-$ o $\text{-NH}_3^+$) o polar se encuentra habitualmente estabilizado por puentes de hidrógeno con moléculas de agua en el solvente (energía de hidratación de $\sim 70\text{-}100\text{ kcal/mol}$). Enterrar un grupo cargado en un núcleo apolar anhidro de baja constante dieléctrica ($\epsilon \approx 2\text{-}4$, frente a $\epsilon \approx 80$ en el agua) sin una pareja de contraión que forme un puente salino perfecto impone una **penalización de energía libre desestabilizadora colosal de entre $+15$ y $+20\text{ kcal/mol}$**.
+2. **Superación del margen de estabilidad marginal:**
+   La estabilidad neta de la estructura nativa de una proteína globular estándar es muy tenue: su energía libre de Gibbs oscila típicamente entre $\Delta G = -5\text{ y }-15\text{ kcal/mol}$. Una penalización desestabilizadora de $+15\text{ kcal/mol}$ anula por completo la estabilidad neta, desplazando el equilibrio conformacional hacia el **estado desplegado o desnaturalizado** a temperatura fisiológica ($37\text{ }^\circ\text{C}$).
+3. **Perturbación estérica y choque electrostático:**
+   La cadena lateral hidrofílica entrante genera repulsión electrostática con dipolos locales o choques estéricos que rompen la red de van der Waals de las cadenas contiguas.
+4. **Consecuencias celulares y fisiopatológicas:**
+   - La proteína desplegada o en estado de "glóbulo fundido" expone parches hidrofóbicos al citosol.
+   - Estos parches interactúan aberrante e hidrofóbicamente con otras cadenas polipeptídicas desnaturalizadas, originando **agregados proteicos insolubles y fibrillas amiloides**.
+   - Se activan las vías de control de calidad celular: degradación masiva por el proteasoma $26\text{S}$ (vía ligasas de ubiquitina) o inducción de estrés en el retículo endoplásmico (**UPR**, *Unfolded Protein Response*).
+   - En humanos, mutaciones en residuos del núcleo hidrofóbico causan patologías moleculares graves, como la desestabilización del dominio de unión de **p53** (conduciendo a cáncer por pérdida de supresión tumoral) o la agregación de cadenas de globina e inmunoglobulinas en amiloidosis sistémicas.
+
+---
+
+### 4. Extensión Bioinformática con el Protein Data Bank (PDB: Caso Lisozima `1AKI`)
+
+Para contrastar estos principios en una estructura tridimensional cristalográfica experimental a resolución atómica ($1.5\text{ \AA}$), se utilizó la estructura de la **Lisozima de clara de huevo de gallina (*Gallus gallus*, PDB ID: `1AKI`)**, analizada mediante el script [`scripts/ejercicio_05_proteinas.py`](scripts/ejercicio_05_proteinas.py).
+
+#### A. Arquitectura y distribución de estructura secundaria
+La Lisozima es una enzima globular de 129 aminoácidos que combina regiones helicoidales y planares estabilizadas por 4 puentes disulfuro covalentes:
+- **Hélices $\alpha$ y $3_{10}$ (44.2% de los residuos, 57 aa):** Agrupadas en 8 segmentos (Hélices 1 a 8), destacando la Hélice 1 (Arg5-Arg14), Hélice 3 (Leu25-Ser36) y Hélice 5 (Thr89-Asp101).
+- **Láminas $\beta$ antiparalelas (4.7% de los residuos, 6 aa):** Compuestas por dos hebras beta antiparalelas (Thr43-Arg45 y Thr51-Tyr53) que delimitan el labio inferior de la hendidura catalítica.
+- **Bucles y giros de conexión (51.2% de los residuos, 66 aa):** Regiones con gran movilidad y flexibilidad conformacional enriquecidas en residuos polares y glicinas.
+
+#### B. Evidencia bioinformática cuantitativa del Efecto Hidrofóbico
+Calculando el centro de masa geométrico de las coordenadas $C_\alpha$ y analizando la distribución radial de los residuos:
+- **Distancia media de residuos fuertemente hidrofóbicos (Leu, Ile, Val, Phe, Met, Trp):** $\mathbf{10.89\text{ \AA}}$ del centro de masa.
+- **Distancia media de residuos cargados hidrofílicos (Arg, Lys, Asp, Glu):** $\mathbf{14.83\text{ \AA}}$ del centro de masa.
+- **Diferencia radial:** $\mathbf{+3.94\text{ \AA}}$ hacia la periferia acuosa.
+
+Este resultado cuantitativo valida computacionalmente que los residuos apolares se empaquetan de forma preferencial en el núcleo interno anhidro de la proteína, mientras que las cargas se proyectan radialmente hacia la superficie en contacto con el disolvente.
+
+#### C. Simulación de mutación desestabilizadora en el núcleo: `Ile98Glu`
+- El residuo **Isoleucina 98 ($\text{Ile98}$)** se localiza profundamente enterrado en el núcleo hidrofóbico de la hélice $\alpha$ 5, a tan solo $9.36\text{ \AA}$ del centro de masa.
+- Su sustitución por un Ácido Glutámico polar ionizable ($\text{Glu}$, carboxilo $\text{-COO}^-$) introduce una carga neta desolvatada en el corazón de la enzima, provocando una penalización energética de $\sim 18\text{ kcal/mol}$ que induce el colapso del plegamiento terciario nativo y la inactivación funcional total de la enzima.
+
+El script `scripts/ejercicio_05_proteinas.py` ejecuta estos análisis biofísicos de manera reproducible.
+
+---
+
+## Ejercicio 6: Actividad integradora: del ADN a la proteína
+
+### 1. Objetivo
+Integrar de manera sistemática y cuantitativa los tres procesos cardinales del **Dogma Central de la Biología Molecular** (Replicación, Transcripción y Traducción) en un pipeline bioinformático continuo y transparente, utilizando una secuencia génica humana real extraída del repositorio público de referencia del **NCBI**, analizando los puntos críticos de vulnerabilidad a errores y programando un flujo de trabajo automatizado que registre e informe minuciosamente de cada evento molecular en tiempo de ejecución.
+
+---
+
+### 2. Selección de la Secuencia Biológica de Referencia (NCBI GenBank)
+
+Se seleccionó la secuencia codificante del **gen de la Insulina humana (*INS*)**, un locus paradigmático en endocrinología molecular y biotecnología localizado en el brazo corto del cromosoma 11 ($11\text{p}15.5$):
+
+- **Base de datos:** [NCBI Reference Sequence Database (RefSeq)](https://www.ncbi.nlm.nih.gov/nuccore/NM_000207.3).
+- **Identificador de Transcrito:** `NM_000207.3` (*Homo sapiens* insulin, transcript variant 1).
+- **Región Codificante (CDS):** Coordenadas `60..392` del ARNm maduro.
+- **Longitud:** $\mathbf{333\text{ pares de bases (pb)}}$, exactamente divisibles en $111\text{ codones}$ (1 codón de inicio $\text{ATG}$, 109 codones con sentido y 1 codón de parada $\text{TAG}$).
+- **Producto polipeptídico:** Preproinsulina humana canónica de $\mathbf{110\text{ aminoácidos}}$ ([NCBI Protein: `NP_000198.1`](https://www.ncbi.nlm.nih.gov/protein/NP_000198.1)).
+- **Archivo fuente:** [`data/insulina_humana_cds.fasta`](data/insulina_humana_cds.fasta).
+
+```text
+Flujo del Dogma Central en el Pipeline:
+  [ADN bicatenario: INS CDS (333 pb)]
+                  │
+                  ▼  Paso 1: Replicación Semiconservativa (ADN Polimerasa)
+  [2 Dúplex de ADN hijos idénticos]
+                  │
+                  ▼  Paso 2: Transcripción (ARN Polimerasa II)
+  [ARNm maduro (333 nt, AUG -> UAG)]  ──> exportado a data/ejercicio_06_insulina_arnm.fasta
+                  │
+                  ▼  Paso 3: Traducción ribosómica (Complejo 80S)
+  [Preproinsulina humana (110 aa)]    ──> exportado a data/ejercicio_06_insulina_proteina.fasta
+```
+
+---
+
+### 3. Paso 1: Replicación Semiconservativa del ADN
+
+La doble hélice parental de la CDS de la insulina se desnaturaliza por la acción coordinada de la **ADN Helicasa**, rompiendo los enlaces de hidrógeno entre bases complementarias. La **ADN Primasa** sintetiza iniciadores de ARN y la **ADN Polimerasa** cataliza la adición de dNTPs en dirección estrictamente **$5' \to 3'$**:
+
+$$\begin{aligned}
+\text{Hebra Parental Sentido } (5'\to 3'): & \quad 5'\text{ – ATG GCC CTG TGG ATG CGC CTC CTG ... AAC TAC TGC AAC TAG – }3' \\
+\text{Hebra Parental Molde } (3'\to 5'): & \quad 3'\text{ – TAC CGG GAC ACC TAC GCG GAG GAC ... TTG ATG ACG TTG ATC – }5'
+\end{aligned}$$
+
+Al completar la ronda de replicación semiconservativa, se generan **dos dúplex hijas bicatenarias idénticas**:
+- **Molécula Hija 1:** Compuesta por la hebra parental sentido ($5'\to 3'$) emparejada con una nueva hebra de ADN neosintetizada ($3'\to 5'$).
+- **Molécula Hija 2:** Compuesta por la nueva hebra de ADN neosintetizada ($5'\to 3'$) emparejada con la hebra parental molde original ($3'\to 5'$).
+
+---
+
+### 4. Paso 2: Transcripción a ARN Mensajero (ARNm)
+
+La **ARN Polimerasa II** dependiente de ADN se posiciona sobre la hebra molde ($3'\to 5'$) y cataliza la formación de enlaces fosfodiéster ribonucleotídicos en sentido **$5' \to 3'$**. La regla de complementariedad estequiométrica determina que:
+- La Adenina ($\text{A}$) de la hebra molde incorpora un Uracilo ($\text{U}$) en el ARNm.
+- La Timina ($\text{T}$) incorpora una Adenina ($\text{A}$).
+- La Citosina ($\text{C}$) incorpora una Guanina ($\text{G}$).
+- La Guanina ($\text{G}$) incorpora una Citosina ($\text{C}$).
+
+El transcrito de ARNm primario resultante posee **$333\text{ ribonucleótidos}$** y coincide exactamente con la hebra codificante de ADN sustituyendo cada $\text{T}$ por $\text{U}$:
+
+$$\mathbf{5'\text{ – AUG GCC CUG UGG AUG CGC CUC CUG ... AAC UAC UGC AAC UAG – }3'}$$
+
+El producto es exportado y almacenado de forma estandarizada en [`data/ejercicio_06_insulina_arnm.fasta`](data/ejercicio_06_insulina_arnm.fasta).
+
+---
+
+### 5. Paso 3: Traducción y Ensamblaje Polipeptídico
+
+El complejo ribosómico efectúa la lectura en el marco abierto de lectura (ORF):
+1. **Iniciación:** Reconocimiento del codón $5'\text{-AUG-}3'$ en la pauta de lectura, reclutando el $\text{Met-tRNA}_i^{\text{Met}}$ para incorporar la **Metionina** inicial.
+2. **Elongación:** Translocación cíclica coordinada en los sitios A, P y E incorporando secuencialmente los aminoacil-ARNt correspondientes a los 109 codones con sentido.
+3. **Terminación:** Reconocimiento del codón de parada $\mathbf{5'\text{-UAG-}3'}$ (*Amber*) por los factores proteicos de liberación (eRF1), disociando el ribosoma y liberando el polipéptido completo.
+
+#### Secuencia primaria y dominios de la Preproinsulina humana (110 aminoácidos):
+
+$$\mathbf{\text{MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN}}$$
+
+La preproinsulina sintetizada se organiza en cuatro dominios funcionales esenciales para su maduración postraduccional:
+
+| Segmento | Residuos (aa) | Secuencia primaria | Función biológica y procesamiento |
+| :--- | :--- | :--- | :--- |
+| **Péptido Señal** | $1\text{ - }24$ | `MALWMRLLPLLALLALWGPDPAAA` | Muy hidrofóbico; reconocido por la partícula SRP (*Signal Recognition Particle*) para la translocación cotraduccional hacia el lumen del retículo endoplásmico (RE). Es escindido por la **peptidasa señal**, transformando la molécula en **proinsulina**. |
+| **Cadena B** | $25\text{ - }54$ | `FVNQHLCGSHLVEALYLVCGERGFFYTPKT` | Constituye la cadena B de la hormona madura activa ($30\text{ aa}$). Contiene dos cisteínas cruciales (Cys31 y Cys43) para puentes disulfuro. |
+| **Péptido C conector** | $55\text{ - }89$ | `RREAEDLQVGQVELGGGPGAGSLQPLALEGSLQKR` | Segmento espaciador flexible ($35\text{ aa}$) que alinea y orienta tridimensionalmente la cadena B con la cadena A, permitiendo la formación correcta de los **3 puentes disulfuro nativos** (dos intercatenarios B7-A7 y B19-A20, y uno intracatenario A6-A11). En los gránulos secretores de las células $\beta$ pancreáticas, es escindido y liberado por las **prohormona convertasas PC1/3 y PC2** y la **carboxipeptidasa E**. |
+| **Cadena A** | $90\text{ - }110$ | `GIVEQCCTSICSLYQLENYCN` | Constituye la cadena A de la hormona madura activa ($21\text{ aa}$), unida covalentemente a la cadena B por los puentes disulfuro. |
+
+El polipéptido traducido es exportado de manera reproducible en [`data/ejercicio_06_insulina_proteina.fasta`](data/ejercicio_06_insulina_proteina.fasta).
+
+---
+
+### 6. Reflexión Crítica: ¿Qué Punto del Proceso es Más Vulnerable a Errores?
+
+Para responder rigurosamente a esta cuestión fundamental, es indispensable contrastar la **fidelidad bioquímica cuantitativa** frente a la **magnitud del impacto biológico y heredabilidad cualitativa** de cada nivel:
+
+```text
+NIVEL MACROMOLECULAR        TASA DE ERROR BASAL        MECANISMOS DE CORRECCIÓN            IMPACTO BIOLÓGICO Y HEREDABILIDAD
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. Replicación (ADN)        ~10^-9 a 10^-10            • Exonucleasa 3'->5' (Proofreading) • PERMANENTE, IRREVERSIBLE Y HEREDABLE.
+                            (Altísima fidelidad)       • Sistema Mismatch Repair (MMR)     • Se transmite al 100% de células hijas.
+                                                                                           • Afecta al 100% de ARNm y proteínas.
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+2. Transcripción (ARNm)     ~10^-4 a 10^-5             • Corrección intrínseca limitada    • TRANSITORIO Y DILUIDO.
+                            (Fidelidad intermedia)     • Vías de vigilancia (NMD, NSD)     • El ARNm tiene una vida media corta.
+                                                                                           • Se producen decenas de copias normales.
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+3. Traducción (Proteína)    ~10^-3 a 10^-4             • Edición cinética por aa-tRNA sint. • EFÍMERO Y LOCALIZADO.
+                            (Baja fidelidad relativa)  • Control de calidad ribosómico     • Afecta únicamente a 1 molécula de proteína.
+                                                                                           • Degradación rápida por el proteasoma.
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+#### Análisis comparativo y veredicto molecular:
+
+1. **La Paradoja de la Fidelidad:**
+   La traducción presenta la tasa intrínseca de error más alta de las tres ($\sim 1$ de cada $10.000$ aminoácidos incorporados es incorrecto), seguida por la transcripción ($\sim 1$ de cada $100.000$ nucleótidos). Sin embargo, una proteína aberrante es una entidad transitoria: una célula humana posee decenas de miles de copias de dicha proteína, y los mecanismos proteostáticos celulares (chaperonas Hsp70/Hsp90 y el sistema ubiquitina-proteasoma) detectan y degradan selectivamente los polipéptidos defectuosos sin causar perjuicio general. De igual modo, una molécula de ARNm con un error de transcripción solo generará unas pocas proteínas anómalas antes de ser degradada en minutos por las ribonucleasas citosólicas.
+
+2. **Por qué la Replicación del ADN es el punto más crítico y vulnerable:**
+   A pesar de poseer la maquinaria más sofisticada de prevención y reparación de errores (con una fidelidad casi perfecta de 1 error cada $10^{10}$ bases), **la replicación es el punto cualitativa y evolutivamente más vulnerable**:
+   - **Fijación indeleble:** Un error no corregido en la replicación se convierte covalentemente en una **mutación génica permanente** tras la siguiente ronda de división celular.
+   - **Efecto multiplicador en cascada:** La mutación en el molde de ADN se transcribirá en el **$100\%$ de las moléculas de ARNm** que se sinteticen a partir de ese gen, y a su vez cada uno de esos ARNm traducirá el **$100\%$ de las proteínas con la anomalía**.
+   - **Heredabilidad celular y patología:** Si la mutación ocurre en una célula madre somática, se propagará de manera clonal a todo el tejido descendiente, siendo la causa raíz de la transformación oncogénica y el cáncer. Si ocurre en la línea germinal (óvulos o espermatozoides), se transmitirá a la descendencia causando enfermedades genéticas hereditarias (como diabetes neonatal o MODY en el caso del gen *INS*).
+
+> [!IMPORTANT]
+> **Conclusión:** Aunque la traducción tolera una mayor frecuencia estocástica de errores debido a la rápida tasa de recambio proteico, **la replicación del ADN es el eslabón más vulnerable de todo el dogma central**, ya que los fallos en el ADN escapan a la dilución metabólica, son permanentes y determinan de manera irreversible el destino y funcionalidad de todos los transcritos y proteínas celulares subsiguientes.
+
+---
+
+### 7. Extensión Práctica con Biopython: Pipeline Integrador
+
+Para automatizar y verificar el dogma central de manera trazable y transparente, se programó el script ejecutable [`scripts/ejercicio_06_pipeline_dogma.py`](scripts/ejercicio_06_pipeline_dogma.py).
+
+#### Características bioinformáticas del pipeline:
+1. **Transparencia y monitorización continua:** La clase `DogmaCentralPipeline` imprime en consola cada evento bioquímico (desenrollamiento de hebras, lectura de molde, adición de ribonucleótidos, inicio en AUG, terminación en codón Stop y arquitectura de dominios).
+2. **Replicación:** Calcula la hebra complementaria directa ($3'\to 5'$) y la reversa complementaria ($5'\to 3'$) con `Bio.Seq`, esquematizando los dos dúplex hijos.
+3. **Transcripción:** Transcribe la hebra codificante con `.transcribe()`, valida la sustitución $\text{T}\to\text{U}$ y exporta el archivo [`data/ejercicio_06_insulina_arnm.fasta`](data/ejercicio_06_insulina_arnm.fasta).
+4. **Traducción y validación estricta:** Traduce con `.translate(to_stop=True)`, comprueba mediante `assert` la coincidencia al $100\%$ con la preproinsulina humana oficial del NCBI (`NP_000198.1`), desglosa la secuencia en sus cuatro dominios fisiológicos (Péptido señal, Cadena B, Péptido C y Cadena A) y exporta el resultado a [`data/ejercicio_06_insulina_proteina.fasta`](data/ejercicio_06_insulina_proteina.fasta).
+
+Para ejecutar el pipeline completo en consola con `uv`:
+```bash
+uv run scripts/ejercicio_06_pipeline_dogma.py
+```
+
+
 
 
