@@ -1,7 +1,5 @@
 # Del ADN a la Proteína: Dogma Central y Análisis Bioinformático
 
----
-
 ## Ejercicio 1. Replicación del ADN
 
 **1. Dúplex parental y mecanismo semiconservativo:** 
@@ -18,8 +16,6 @@ Si un desapareamiento (*mismatch*) elude el *proofreading* y el sistema MMR, en 
 **4. Extensión con Biopython:** 
 En el Jupyter Notebook `notebooks/ejercicio_01_replicacion.ipynb` se valida la secuencia con `Bio.Seq`: `dna.complement()` rinde la orientación `3'->5'` (`TACGGCAATCGA`) y `dna.reverse_complement()` la estándar `5'->3'` (`AGCTAACGGCAT`), coincidiendo al 100% con la deducción manual.
 
----
-
 ## Ejercicio 2. Transcripción del ADN a ARN
 
 **1. Discriminación de cadenas y transcrito:** 
@@ -32,8 +28,6 @@ El *promotor* es una región reguladora no traducida situada río arriba (*upstr
 **3. Extensión con Biopython:** 
 En el Jupyter Notebook `notebooks/ejercicio_02_transcripcion.ipynb` se procesa el FASTA con `record.seq.transcribe()`. Al invertir la secuencia (`seq[::-1]`) o transcribir la hebra complementaria reversa, se destruye el marco de lectura dando péptidos totalmente diferentes (`Arg-Lys-Ser-Val` o `Ala-Phe-Arg-His`), demostrando que la información genética depende de forma unívoca de la polaridad química $5' \to 3'$.
 
----
-
 ## Ejercicio 3. Traducción del ARNm a proteína
 
 **1. Pauta de lectura y péptido resultante:** 
@@ -41,12 +35,10 @@ En el transcrito `5'-AUG UAU GCU UAA-3'`, el codón `AUG` fija el inicio incorpo
 
 **2. Reflexión (Impacto de mutaciones críticas):** 
 - *Mutación de inicio (**AUG** => **GUG**):* En eucariotas impide el reconocimiento por el complejo de preiniciación 43S, suprimiendo la traducción ($>90\%$) o forzando inicios aberrantes secundarios fuera de marco. En bacterias actúa como inicio alternativo funcional guiado por la secuencia Shine-Dalgarno con menor afinidad.
-- *Pérdida de parada (*Stop-loss*, ej. $\text{UAA} \to \text{CAA}$):* El ribosoma invade la región $3'\text{-UTR}$ (*readthrough*) y al llegar a la cola poli-A traduce polilisinas básicas que colapsan el túnel ribosómico (*ribosome stalling*), activando la degradación del ARNm por Non-stop Decay (NSD) y proteólisis de la proteína en el proteasoma 26S (RQC/Ltn1).
+- *Pérdida de parada (*Stop-loss*, ej. **UAA** => **CAA**):* El ribosoma invade la región $3'\text{-UTR}$ (*readthrough*) y al llegar a la cola poli-A traduce polilisinas básicas que colapsan el túnel ribosómico (*ribosome stalling*), activando la degradación del ARNm por Non-stop Decay (NSD) y proteólisis de la proteína en el proteasoma 26S (RQC/Ltn1).
 
 **3. Extensión con Biopython:** 
 En el Jupyter Notebook `notebooks/ejercicio_03_traduccion.ipynb`, `mrna.translate(to_stop=True)` valida la síntesis de `MYA`. Se simula la traducción aberrante por mutación en el inicio (`VYA`) y la elongación anómala en *stop-loss* (`MYAQA...`), confirmando las predicciones teóricas.
-
----
 
 ## Ejercicio 4. Splicing alternativo
 
@@ -59,8 +51,6 @@ Los exones representan dominios discretos (*exon shuffling*). La pérdida del Ex
 **3. Diversidad proteica y caso FGFR2:** 
 Resuelve la paradoja del genoma humano ($\sim 20.000$ genes generan $>100.000$ transcritos): optimiza el espacio cromosómico y el coste bioenergético celular coordinando perfiles tisulares específicos. En el Jupyter Notebook `notebooks/ejercicio_04_splicing.ipynb` se analiza el gen humano **FGFR2** (`ENSG00000066468`), donde la inclusión mutuamente excluyente del Exón 8 (isoforma epitelial IIIb, afín a FGF7/10) o el Exón 9 (isoforma mesenquimal IIIc, afín a FGF2) gobierna la identidad celular. El cambio patológico de IIIb a IIIc desencadena la **Transición Epitelio-Mesénquima (EMT)** e invasión en carcinomas.
 
----
-
 ## Ejercicio 5. Introducción a las proteínas
 
 **1. Polaridad química:** 
@@ -71,8 +61,6 @@ Según el Principio de Anfinsen, la estructura nativa está codificada en la sec
 
 **3. Extensión con el PDB (Lisozima `1AKI`):** 
 En el Jupyter Notebook `notebooks/ejercicio_05_proteinas.ipynb` se analiza la Lisozima (129 aa, 44.2% hélices $\alpha$, 4.7% láminas $\beta$). Los residuos hidrofóbicos se concentran a una distancia media de $10.89\text{ AA}$ del centro de masa, frente a $14.83\text{ AA}$ de los hidrofílicos cargados ($\Delta r = +3.94\text{ AA}$ hacia la superficie solvente), evidenciando el núcleo apolar. La mutación simulada `Ile98Glu` (enterrada a 9.36 Å del centro) desestabilizaría letalmente la arquitectura terciaria nativa.
-
----
 
 ## Ejercicio 6. Actividad integradora: del ADN a la proteína
 
