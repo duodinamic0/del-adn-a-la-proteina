@@ -40,7 +40,7 @@ En el Jupyter Notebook `notebooks/ejercicio_02_transcripcion.ipynb` se procesa e
 En el transcrito `5'-AUG UAU GCU UAA-3'`, el codón `AUG` fija el inicio incorporando Metionina, seguido de Tirosina (`UAU`) y Alanina (`GCU`). El codón de terminación `UAA` no codifica aminoácidos sino que recluta factores proteicos de liberación (RF/eRF1) para hidrolizar el polipéptido maduro: $\mathbf{\text{Met-Tyr-Ala}}$ (**MYA**).
 
 **2. Reflexión (Impacto de mutaciones críticas):** 
-- *Mutación de inicio ($\text{AUG} \to \text{GUG}$):* En eucariotas impide el reconocimiento por el complejo de preiniciación 43S, suprimiendo la traducción ($>90\%$) o forzando inicios aberrantes secundarios fuera de marco. En bacterias actúa como inicio alternativo funcional guiado por la secuencia Shine-Dalgarno con menor afinidad.
+- *Mutación de inicio (**AUG** => **GUG**):* En eucariotas impide el reconocimiento por el complejo de preiniciación 43S, suprimiendo la traducción ($>90\%$) o forzando inicios aberrantes secundarios fuera de marco. En bacterias actúa como inicio alternativo funcional guiado por la secuencia Shine-Dalgarno con menor afinidad.
 - *Pérdida de parada (*Stop-loss*, ej. $\text{UAA} \to \text{CAA}$):* El ribosoma invade la región $3'\text{-UTR}$ (*readthrough*) y al llegar a la cola poli-A traduce polilisinas básicas que colapsan el túnel ribosómico (*ribosome stalling*), activando la degradación del ARNm por Non-stop Decay (NSD) y proteólisis de la proteína en el proteasoma 26S (RQC/Ltn1).
 
 **3. Extensión con Biopython:** 
@@ -70,7 +70,7 @@ En el péptido $\text{Met-Ile-Ser-Gly-Val-Lys-His}$ (`MISGVKH`), el extremo **N-
 Según el Principio de Anfinsen, la estructura nativa está codificada en la secuencia lineal. La alternancia de residuos apolares y polares define motivos regulares como hélices $\alpha$ (anfipáticas cada 3.6 residuos) y láminas $\beta$ (cada 2 residuos). El plegamiento está impulsado por el **efecto hidrofóbico**, empaquetando cadenas apolares en un núcleo interno anhidro. Sustituir un residuo apolar interno por uno cargado/hidrofílico (ej. $\text{Ile} \to \text{Glu}$) acarrea una penalización de desolvatación masiva ($+15 \text{ a } +20\text{ kcal/mol}$) que supera la tenue estabilidad nativa ($\Delta G \approx -5 \text{ a } -15\text{ kcal/mol}$), provocando el colapso conformacional, agregación amiloide citotóxica y degradación proteasomal.
 
 **3. Extensión con el PDB (Lisozima `1AKI`):** 
-En el Jupyter Notebook `notebooks/ejercicio_05_proteinas.ipynb` se analiza la Lisozima (129 aa, 44.2% hélices $\alpha$, 4.7% láminas $\beta$). Los residuos hidrofóbicos se concentran a una distancia media de $10.89\text{ \AA}$ del centro de masa, frente a $14.83\text{ \AA}$ de los hidrofílicos cargados ($\Delta r = +3.94\text{ \AA}$ hacia la superficie solvente), evidenciando el núcleo apolar. La mutación simulada `Ile98Glu` (enterrada a 9.36 Å del centro) desestabilizaría letalmente la arquitectura terciaria nativa.
+En el Jupyter Notebook `notebooks/ejercicio_05_proteinas.ipynb` se analiza la Lisozima (129 aa, 44.2% hélices $\alpha$, 4.7% láminas $\beta$). Los residuos hidrofóbicos se concentran a una distancia media de $10.89\text{ AA}$ del centro de masa, frente a $14.83\text{ AA}$ de los hidrofílicos cargados ($\Delta r = +3.94\text{ AA}$ hacia la superficie solvente), evidenciando el núcleo apolar. La mutación simulada `Ile98Glu` (enterrada a 9.36 Å del centro) desestabilizaría letalmente la arquitectura terciaria nativa.
 
 ---
 
